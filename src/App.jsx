@@ -439,10 +439,10 @@ function drawBanner(canvas, { name, subtitle, description, tags, accent, bgStyle
 }
 
 export default function BannerGenerator() {
-  const [name, setName]               = useState("cyberdrop-client");
-  const [subtitle, setSubtitle]       = useState("Async API Client + Typed Models");
-  const [description, setDescription] = useState("A Rust API client for Cyberdrop with async support and typed models. Works with both cyberdrop.cr and bunkr.cr endpoints.");
-  const [tagsInput, setTagsInput]     = useState("MCP-NATIVE, ASYNC, .CRBL");
+  const [name, setName]               = useState("Project Title");
+  const [subtitle, setSubtitle]       = useState("Short project tagline");
+  const [description, setDescription] = useState("A brief description of your project and what it does.");
+  const [tagsInput, setTagsInput]     = useState("TAG1, TAG2, TAG3");
   const [accentIdx, setAccentIdx]     = useState(0);
   const [accentColor, setAccentColor] = useState(ACCENTS[0].color);
   const [bgStyle, setBgStyle]         = useState("WAVE");
