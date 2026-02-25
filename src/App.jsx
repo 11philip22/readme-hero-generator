@@ -109,25 +109,120 @@ function drawTopoWave(ctx, width, height, pal) {
   }
 }
 
+function sampleVoidField(x, y, width, height) {
+  const warpX =
+    noise(x * 0.006 + 4.1, y * 0.006 - 1.9) * 88 +
+    noise(x * 0.014 - 3.2, y * 0.010 + 2.7) * 36;
+  const warpY =
+    noise(x * 0.006 - 2.6, y * 0.006 + 3.4) * 92 +
+    noise(x * 0.012 + 1.8, y * 0.012 - 4.3) * 34;
+  const wx = x + warpX;
+  const wy = y + warpY;
+
+  const base =
+    noise(wx * 0.013, wy * 0.028) * 0.84 +
+    noise(wx * 0.039 + 7.3, wy * 0.021 + 11.6) * 0.44 +
+    noise((wx + wy * 0.33) * 0.018, (wy - wx * 0.27) * 0.020) * 0.31;
+
+  const flow =
+    Math.sin((wx * 0.018 + wy * 0.010) + noise(x * 0.012, y * 0.012) * 2.1) * 0.18 +
+    Math.cos((wx * 0.010 - wy * 0.019) + noise(x * 0.017 + 2.4, y * 0.015 - 1.7) * 1.7) * 0.13;
+
+  return (base + flow) * 0.78;
+}
+
+function edgePoint(x, y, step, edge, v00, v10, v11, v01, level) {
+  if (edge === 0) {
+    const denom = v10 - v00 || 1e-6;
+    const t = (level - v00) / denom;
+    return [x + step * t, y];
+  }
+  if (edge === 1) {
+    const denom = v11 - v10 || 1e-6;
+    const t = (level - v10) / denom;
+    return [x + step, y + step * t];
+  }
+  if (edge === 2) {
+    const denom = v11 - v01 || 1e-6;
+    const t = (level - v01) / denom;
+    return [x + step * t, y + step];
+  }
+  const denom = v01 - v00 || 1e-6;
+  const t = (level - v00) / denom;
+  return [x, y + step * t];
+}
+
 function drawVoid(ctx, width, height, pal) {
-  const scaleX = 0.012, scaleY = 0.022, bands = 4;
   const inv = pal.PATTERN_INV;
-  for (let px = 0; px < width; px++) {
-    for (let py = 0; py < height; py++) {
-      const val1 = noise(px * scaleX, py * scaleY);
-      const val2 = noise(px * 0.031 + 5.3, py * 0.044 + 2.7);
-      const val = val1 + val2 * 0.42;
-      const n = (val / 1.42 + 1) / 2;
-      const bandPos = (n * bands) % 1.0;
-      const isLight = bandPos < 0.5;
-      if (isLight) {
-        const rawBrightness = 0.10 + bandPos * 0.14;
-        const brightness = inv ? (1 - rawBrightness) : rawBrightness;
-        const v = Math.round(brightness * 255);
-        ctx.fillStyle = `rgba(${v},${v},${v},0.85)`;
-        ctx.fillRect(px, py, 1, 1);
+  const step = 5;
+  const cols = Math.ceil(width / step);
+  const rows = Math.ceil(height / step);
+  const field = Array.from({ length: rows + 1 }, () => new Float32Array(cols + 1));
+
+  for (let gy = 0; gy <= rows; gy++) {
+    for (let gx = 0; gx <= cols; gx++) {
+      field[gy][gx] = sampleVoidField(gx * step, gy * step, width, height);
+    }
+  }
+
+  const segmentsByCase = {
+    1: [[3, 0]],
+    2: [[0, 1]],
+    3: [[3, 1]],
+    4: [[1, 2]],
+    5: [[0, 1], [3, 2]],
+    6: [[0, 2]],
+    7: [[3, 2]],
+    8: [[2, 3]],
+    9: [[0, 2]],
+    10: [[0, 3], [1, 2]],
+    11: [[1, 2]],
+    12: [[1, 3]],
+    13: [[0, 1]],
+    14: [[0, 3]],
+  };
+
+  const levels = 17;
+  const minLevel = -1.55;
+  const maxLevel = 1.55;
+  for (let i = 0; i < levels; i++) {
+    const t = i / Math.max(1, levels - 1);
+    const level = minLevel + (maxLevel - minLevel) * t;
+    const rawBrightness = 0.12 + t * 0.20;
+    const brightness = inv ? (1 - rawBrightness) : rawBrightness;
+    const v = Math.round(brightness * 255);
+    const alpha = 0.22 + (1 - Math.abs(t - 0.5) * 1.65) * 0.36;
+
+    ctx.strokeStyle = `rgba(${v},${v},${v},${Math.max(0.08, alpha).toFixed(2)})`;
+    ctx.lineWidth = 0.9 + (1 - Math.abs(t - 0.5) * 1.4) * 0.8;
+    ctx.beginPath();
+
+    for (let gy = 0; gy < rows; gy++) {
+      for (let gx = 0; gx < cols; gx++) {
+        const v00 = field[gy][gx];
+        const v10 = field[gy][gx + 1];
+        const v11 = field[gy + 1][gx + 1];
+        const v01 = field[gy + 1][gx];
+
+        const c0 = v00 >= level ? 1 : 0;
+        const c1 = v10 >= level ? 1 : 0;
+        const c2 = v11 >= level ? 1 : 0;
+        const c3 = v01 >= level ? 1 : 0;
+        const mask = c0 | (c1 << 1) | (c2 << 2) | (c3 << 3);
+        const pairs = segmentsByCase[mask];
+        if (!pairs) continue;
+
+        const x = gx * step;
+        const y = gy * step;
+        for (const [ea, eb] of pairs) {
+          const [ax, ay] = edgePoint(x, y, step, ea, v00, v10, v11, v01, level);
+          const [bx, by] = edgePoint(x, y, step, eb, v00, v10, v11, v01, level);
+          ctx.moveTo(ax, ay);
+          ctx.lineTo(bx, by);
+        }
       }
     }
+    ctx.stroke();
   }
 }
 
