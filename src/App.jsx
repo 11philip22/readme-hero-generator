@@ -11,7 +11,7 @@ const ACCENTS = [
   { name: "ICE",    color: "#e0f2fe" },
 ];
 
-const BACKGROUNDS = ["NONE", "DOTS", "GRID", "WAVE", "VOID", "ZEBRA"];
+const BACKGROUNDS = ["NONE", "DOTS", "GRID", "SCAN", "WAVE", "VOID", "ZEBRA"];
 
 const PALETTE = {
   dark: {
@@ -94,6 +94,57 @@ function drawSquareGrid(ctx, width, height, pal) {
   }
   ctx.stroke();
   ctx.restore();
+}
+
+function drawScan(ctx, width, height, pal) {
+  const inv = pal.PATTERN_INV;
+  const lineGap = 4;
+  const baseV = inv ? 72 : 48;
+
+  for (let y = 1; y < height; y += lineGap) {
+    const yWave = noise(0, y * 0.07);
+    const alpha = inv ? (0.12 + yWave * 0.03) : (0.18 + yWave * 0.04);
+    ctx.strokeStyle = `rgba(${baseV},${baseV},${baseV},${Math.max(0.08, alpha).toFixed(3)})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+
+    let drawing = true;
+    let segmentStart = 0;
+    for (let x = 0; x <= width; x += 8) {
+      const jitter = noise(x * 0.042 + 3.8, y * 0.08 - 2.1);
+      const lineY = y + jitter * 0.7;
+      const dropout = noise(x * 0.08 + 14.5, y * 0.22 + 7.1);
+      const shouldDraw = dropout > -0.56;
+
+      if (shouldDraw && !drawing) {
+        drawing = true;
+        segmentStart = x;
+      } else if (!shouldDraw && drawing) {
+        drawing = false;
+        ctx.moveTo(segmentStart, lineY);
+        ctx.lineTo(x, lineY);
+      }
+    }
+    if (drawing) {
+      const endJitter = noise(width * 0.042 + 3.8, y * 0.08 - 2.1);
+      const endY = y + endJitter * 0.7;
+      ctx.moveTo(segmentStart, endY);
+      ctx.lineTo(width, endY);
+    }
+    ctx.stroke();
+  }
+
+  // Occasional brighter sweep lines for a subtle CRT-like pass.
+  for (let i = 0; i < 3; i++) {
+    const y = Math.round((i + 1) * (height / 4) + noise(i * 3.1, 4.8) * 8);
+    const v = inv ? 96 : 66;
+    ctx.strokeStyle = `rgba(${v},${v},${v},${inv ? "0.12" : "0.16"})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, y + 0.5);
+    ctx.lineTo(width, y + 0.5);
+    ctx.stroke();
+  }
 }
 
 function drawTopoWave(ctx, width, height, pal) {
@@ -293,6 +344,7 @@ function drawBanner(canvas, { name, subtitle, description, tags, accent, bgStyle
   // Pattern
   if (bgStyle === "DOTS")       drawDotGrid(ctx, width, height, pal);
   else if (bgStyle === "GRID")  drawSquareGrid(ctx, width, height, pal);
+  else if (bgStyle === "SCAN")  drawScan(ctx, width, height, pal);
   else if (bgStyle === "WAVE")  drawTopoWave(ctx, width, height, pal);
   else if (bgStyle === "VOID")  drawVoid(ctx, width, height, pal);
   else if (bgStyle === "ZEBRA") drawZebra(ctx, width, height, pal, dpr);
@@ -514,7 +566,7 @@ export default function BannerGenerator() {
             <div style={{ display: "flex", gap: 5 }}>
               {BACKGROUNDS.map(bg => (
                 <button key={bg} onClick={() => setBgStyle(bg)} style={toggleBtn(bgStyle === bg)}>
-                  {bg === "NONE" ? "✕ NONE" : bg === "DOTS" ? "⬝ DOTS" : bg === "GRID" ? "▦ GRID" : bg === "WAVE" ? "≋ TOPO" : bg === "VOID" ? "▓ VOID" : "▐ ZEBRA"}
+                  {bg === "NONE" ? "✕ NONE" : bg === "DOTS" ? "⬝ DOTS" : bg === "GRID" ? "▦ GRID" : bg === "SCAN" ? "≣ SCAN" : bg === "WAVE" ? "≋ TOPO" : bg === "VOID" ? "▓ VOID" : "▐ ZEBRA"}
                 </button>
               ))}
             </div>
