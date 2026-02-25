@@ -371,13 +371,18 @@ export default function BannerGenerator() {
   const [description, setDescription] = useState("A Rust API client for Cyberdrop with async support and typed models. Works with both cyberdrop.cr and bunkr.cr endpoints.");
   const [tagsInput, setTagsInput]     = useState("MCP-NATIVE, ASYNC, .CRBL");
   const [accentIdx, setAccentIdx]     = useState(0);
+  const [accentColor, setAccentColor] = useState(ACCENTS[0].color);
   const [bgStyle, setBgStyle]         = useState("WAVE");
   const [colorMode, setColorMode]     = useState("dark");
   const [fontReady, setFontReady]     = useState(false);
   const canvasRef = useRef(null);
+  const customColorInputRef = useRef(null);
   const W = 1400, H = 280;
   const tags   = tagsInput.split(",").map(t => t.trim()).filter(Boolean);
-  const accent = ACCENTS[accentIdx];
+  const accent = {
+    name: accentIdx >= 0 ? ACCENTS[accentIdx].name : "CUSTOM",
+    color: accentColor,
+  };
   const isDark = colorMode === "dark";
 
   // UI palette mirrors the banner mode
@@ -498,7 +503,7 @@ export default function BannerGenerator() {
             <div style={{ ...lbl, marginBottom: 8 }}>Accent Color</div>
             <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
               {ACCENTS.map((a, i) => (
-                <button key={a.name} onClick={() => setAccentIdx(i)} style={{
+                <button key={a.name} onClick={() => { setAccentIdx(i); setAccentColor(a.color); }} style={{
                   display: "flex", alignItems: "center", gap: 6, padding: "5px 12px",
                   border: i === accentIdx ? `1px solid ${a.color}` : `1px solid ${ui.inputBorder}`,
                   background: i === accentIdx ? a.color + "18" : "transparent",
@@ -510,6 +515,45 @@ export default function BannerGenerator() {
                   {a.name}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => {
+                  const picker = customColorInputRef.current;
+                  if (!picker) return;
+                  if (typeof picker.showPicker === "function") picker.showPicker();
+                  else picker.click();
+                }}
+                style={{
+                  display: "flex", alignItems: "center", gap: 8, padding: "5px 10px",
+                  border: accentIdx === -1 ? `1px solid ${accent.color}` : `1px solid ${ui.inputBorder}`,
+                  background: accentIdx === -1 ? accent.color + "18" : "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                <span style={{
+                  fontSize: 10, fontFamily: "'JetBrains Mono', monospace", letterSpacing: "0.1em",
+                  color: accentIdx === -1 ? accent.color : ui.label,
+                }}>CUSTOM</span>
+                <div style={{
+                  width: 20, height: 20, padding: 0, border: `1px solid ${ui.inputBorder}`,
+                  background: accentColor,
+                  boxSizing: "border-box",
+                }} />
+              </button>
+              <input
+                ref={customColorInputRef}
+                type="color"
+                value={accentColor}
+                onChange={e => { setAccentIdx(-1); setAccentColor(e.target.value); }}
+                style={{
+                  position: "absolute",
+                  opacity: 0,
+                  width: 0,
+                  height: 0,
+                  pointerEvents: "none",
+                }}
+                aria-label="Custom accent color"
+              />
             </div>
           </div>
 
