@@ -226,11 +226,18 @@ function drawVoid(ctx, width, height, pal) {
   }
 }
 
-function drawZebra(ctx, width, height, pal) {
+function drawZebra(ctx, width, height, pal, deviceScale = 1) {
   const stripeWidth = width / 10;
   const inv = pal.PATTERN_INV;
-  for (let px = 0; px < width; px++) {
-    for (let py = 0; py < height; py++) {
+  const sampleScale = Math.max(1, Math.round(deviceScale));
+  const step = 1 / sampleScale;
+  const sxMax = Math.floor(width * sampleScale);
+  const syMax = Math.floor(height * sampleScale);
+
+  for (let sx = 0; sx < sxMax; sx++) {
+    const px = sx * step;
+    for (let sy = 0; sy < syMax; sy++) {
+      const py = sy * step;
       const warp = noise(py * 0.025, px * 0.008) * stripeWidth * 1.4;
       const warpedX = px + warp;
       const bandPos = ((warpedX / stripeWidth) % 1.0 + 1.0) % 1.0;
@@ -240,7 +247,7 @@ function drawZebra(ctx, width, height, pal) {
         const brightness = inv ? (1 - rawBrightness) : rawBrightness;
         const v = Math.round(brightness * 255);
         ctx.fillStyle = `rgba(${v},${v},${v},0.85)`;
-        ctx.fillRect(px, py, 1, 1);
+        ctx.fillRect(px, py, step, step);
       }
     }
   }
@@ -267,7 +274,7 @@ function drawBanner(canvas, { name, subtitle, description, tags, accent, bgStyle
   if (bgStyle === "DOTS")       drawDotGrid(ctx, width, height, pal);
   else if (bgStyle === "WAVE")  drawTopoWave(ctx, width, height, pal);
   else if (bgStyle === "VOID")  drawVoid(ctx, width, height, pal);
-  else if (bgStyle === "ZEBRA") drawZebra(ctx, width, height, pal);
+  else if (bgStyle === "ZEBRA") drawZebra(ctx, width, height, pal, dpr);
   // NONE — just the solid background color, no pattern
 
   const pad = 20;
