@@ -11,7 +11,7 @@ const ACCENTS = [
   { name: "ICE",    color: "#e0f2fe" },
 ];
 
-const BACKGROUNDS = ["NONE", "DOTS", "WAVE", "VOID", "ZEBRA"];
+const BACKGROUNDS = ["NONE", "DOTS", "GRID", "WAVE", "VOID", "ZEBRA"];
 
 const PALETTE = {
   dark: {
@@ -74,6 +74,26 @@ function drawDotGrid(ctx, width, height, pal) {
       ctx.fill();
     }
   }
+}
+
+function drawSquareGrid(ctx, width, height, pal) {
+  const spacing = 40;
+  const v = pal.PATTERN_INV ? 92 : 62;
+  const alpha = pal.PATTERN_INV ? 0.26 : 0.34;
+  ctx.save();
+  ctx.strokeStyle = `rgba(${v},${v},${v},${alpha})`;
+  ctx.lineWidth = 1;
+  ctx.beginPath();
+  for (let x = 0; x <= width; x += spacing) {
+    ctx.moveTo(x + 0.5, 0);
+    ctx.lineTo(x + 0.5, height);
+  }
+  for (let y = 0; y <= height; y += spacing) {
+    ctx.moveTo(0, y + 0.5);
+    ctx.lineTo(width, y + 0.5);
+  }
+  ctx.stroke();
+  ctx.restore();
 }
 
 function drawTopoWave(ctx, width, height, pal) {
@@ -272,6 +292,7 @@ function drawBanner(canvas, { name, subtitle, description, tags, accent, bgStyle
 
   // Pattern
   if (bgStyle === "DOTS")       drawDotGrid(ctx, width, height, pal);
+  else if (bgStyle === "GRID")  drawSquareGrid(ctx, width, height, pal);
   else if (bgStyle === "WAVE")  drawTopoWave(ctx, width, height, pal);
   else if (bgStyle === "VOID")  drawVoid(ctx, width, height, pal);
   else if (bgStyle === "ZEBRA") drawZebra(ctx, width, height, pal, dpr);
@@ -493,7 +514,7 @@ export default function BannerGenerator() {
             <div style={{ display: "flex", gap: 5 }}>
               {BACKGROUNDS.map(bg => (
                 <button key={bg} onClick={() => setBgStyle(bg)} style={toggleBtn(bgStyle === bg)}>
-                  {bg === "NONE" ? "✕ NONE" : bg === "DOTS" ? "⬝ DOTS" : bg === "WAVE" ? "≋ TOPO" : bg === "VOID" ? "▓ VOID" : "▐ ZEBRA"}
+                  {bg === "NONE" ? "✕ NONE" : bg === "DOTS" ? "⬝ DOTS" : bg === "GRID" ? "▦ GRID" : bg === "WAVE" ? "≋ TOPO" : bg === "VOID" ? "▓ VOID" : "▐ ZEBRA"}
                 </button>
               ))}
             </div>
