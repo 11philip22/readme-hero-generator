@@ -1,6 +1,23 @@
-# Hero Generator
+<p align="center">
+  <img src="assets/readme-hero-generator-hero-banner.png" alt="readme-hero-generator hero pane" width="980">
+</p>
 
-Generate README hero banners as PNG images.
+<p align="center">
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-22C55E?style=for-the-badge" alt="License"></a>
+  <a href="https://readme-hero-generator.vercel.app/"><img src="https://img.shields.io/badge/Live_Demo-readme--hero--generator.vercel.app-0EA5E9?style=for-the-badge&logo=vercel&logoColor=white" alt="Live Demo"></a>
+  <a href="https://git.woldtech.nl/CrucifiedMidget/readme-hero-generator/pulls"><img src="https://img.shields.io/badge/PRs-welcome-10B981?style=for-the-badge" alt="PRs Welcome"></a>
+  <a href="https://react.dev/"><img src="https://img.shields.io/badge/Made_with-React-61DAFB?style=for-the-badge&logo=react&logoColor=0B0F14" alt="Made with React"></a>
+</p>
+
+<p align="center">
+  <a href="#live-demo">Live Demo</a> · <a href="#what-it-does">What It Does</a> · <a href="#run-locally">Run Locally</a> · <a href="#build">Build</a> · <a href="#support">Support</a> · <a href="#license">License</a>
+</p>
+
+---
+
+## Live Demo
+
+https://readme-hero-generator.vercel.app/
 
 ## What It Does
 
@@ -11,7 +28,7 @@ Generate README hero banners as PNG images.
   - description
   - tags
   - accent color
-  - background style (`NONE`, `DOTS`, `WAVE`, `VOID`, `ZEBRA`)
+  - background style (`NONE`, `DOTS`, `GRID`, `SCAN`, `WAVE`, `VOID`, `ZEBRA`)
   - light/dark mode
 - Exports a PNG with a 1400x280 design size (`@2x` render for sharper output).
 
@@ -39,4 +56,4 @@ If this project saves you time or helps your work, support is appreciated:
 
 ## License
 
-This project is licensed under the MIT License; see [license](license) for details.
+This project is licensed under the MIT License; see [license](LICENSE) for details.
