@@ -25,8 +25,6 @@ export default function BannerControls({
   backgrounds,
   bgStyle,
   onBackgroundChange,
-  canRerollPattern,
-  onRerollPattern,
   accents,
   accent,
   accentIdx,
@@ -39,8 +37,13 @@ export default function BannerControls({
   isDark,
 }) {
   const lbl = labelStyle(ui, secondaryTextColor);
+  const chipHeight = 26;
   const toggleBtn = (active) => ({
-    padding: "5px 16px",
+    display: "inline-flex",
+    alignItems: "center",
+    height: chipHeight,
+    lineHeight: 1,
+    padding: "5px 12px",
     border: active ? `1px solid ${accent.color}` : `1px solid ${ui.inputBorder}`,
     background: active ? `${accent.color}18` : "transparent",
     color: active ? accent.color : ui.label,
@@ -73,24 +76,6 @@ export default function BannerControls({
             </button>
           ))}
         </div>
-        <button
-          onClick={onRerollPattern}
-          disabled={!canRerollPattern}
-          style={{
-            marginTop: 8,
-            padding: "5px 12px",
-            border: `1px solid ${canRerollPattern ? accent.color : ui.inputBorder}`,
-            background: canRerollPattern ? `${accent.color}14` : "transparent",
-            color: canRerollPattern ? accent.color : ui.label,
-            cursor: canRerollPattern ? "pointer" : "default",
-            fontSize: 10,
-            fontFamily: "'JetBrains Mono', monospace",
-            letterSpacing: "0.1em",
-            borderRadius: 0,
-          }}
-        >
-          ↻ VARIANT
-        </button>
       </div>
 
       <div>
@@ -104,6 +89,8 @@ export default function BannerControls({
                 display: "flex",
                 alignItems: "center",
                 gap: 6,
+                height: chipHeight,
+                lineHeight: 1,
                 padding: "5px 12px",
                 border: i === accentIdx ? `1px solid ${a.color}` : `1px solid ${ui.inputBorder}`,
                 background: i === accentIdx ? `${a.color}18` : "transparent",
@@ -131,6 +118,8 @@ export default function BannerControls({
               display: "flex",
               alignItems: "center",
               gap: 8,
+              height: chipHeight,
+              lineHeight: 1,
               padding: "5px 10px",
               border: accentIdx === -1 ? `1px solid ${accent.color}` : `1px solid ${ui.inputBorder}`,
               background: accentIdx === -1 ? `${accent.color}18` : "transparent",

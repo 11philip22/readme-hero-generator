@@ -31,10 +31,8 @@ export default function BannerGenerator() {
     tags,
     accent,
     isDark,
-    canRerollPattern,
     ui,
     handleBackgroundChange,
-    rerollPattern,
     selectAccent,
     selectCustomAccent,
   } = useBannerState();
@@ -95,8 +93,6 @@ export default function BannerGenerator() {
           backgrounds={BACKGROUNDS}
           bgStyle={bgStyle}
           onBackgroundChange={handleBackgroundChange}
-          canRerollPattern={canRerollPattern}
-          onRerollPattern={rerollPattern}
           accents={ACCENTS}
           accent={accent}
           accentIdx={accentIdx}
