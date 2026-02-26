@@ -37,7 +37,6 @@ export function useBannerState() {
     [accentIdx, accentColor],
   );
   const isDark = colorMode === "dark";
-  const canRerollPattern = bgStyle === "WAVE" || bgStyle === "VOID" || bgStyle === "ZEBRA";
   const ui = useMemo(() => makeUiPalette(isDark), [isDark]);
 
   const handleBackgroundChange = (nextBg) => {
@@ -45,10 +44,6 @@ export function useBannerState() {
     if (nextBg === "WAVE" || nextBg === "VOID" || nextBg === "ZEBRA") {
       setPatternSeed(createPatternSeed());
     }
-  };
-
-  const rerollPattern = () => {
-    setPatternSeed(createPatternSeed());
   };
 
   const selectAccent = (i, color) => {
@@ -79,10 +74,8 @@ export function useBannerState() {
     tags,
     accent,
     isDark,
-    canRerollPattern,
     ui,
     handleBackgroundChange,
-    rerollPattern,
     selectAccent,
     selectCustomAccent,
   };
