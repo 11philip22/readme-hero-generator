@@ -306,14 +306,21 @@ function drawZebra(ctx, width, height, pal, seed, deviceScale = 1) {
   const stripeWidth = width / seed.zebraStripeCount;
   const inv = pal.PATTERN_INV;
   const sampleScale = Math.max(1, Math.round(deviceScale));
-  const step = 1 / sampleScale;
-  const sxMax = Math.floor(width * sampleScale);
-  const syMax = Math.floor(height * sampleScale);
+  const w = Math.floor(width * sampleScale);
+  const h = Math.floor(height * sampleScale);
+  const alpha = Math.round(Math.round(seed.zebraAlpha * 100) / 100 * 255);
 
-  for (let sx = 0; sx < sxMax; sx++) {
-    const px = sx * step;
-    for (let sy = 0; sy < syMax; sy++) {
-      const py = sy * step;
+  const offscreen = document.createElement("canvas");
+  offscreen.width = w;
+  offscreen.height = h;
+  const octx = offscreen.getContext("2d");
+  const img = octx.createImageData(w, h);
+  const data = img.data;
+
+  for (let sy = 0; sy < h; sy++) {
+    const py = sy / sampleScale;
+    for (let sx = 0; sx < w; sx++) {
+      const px = sx / sampleScale;
       const warp = noise(
         (py + seed.zebraOffsetY) * seed.zebraWarpFreqY,
         (px + seed.zebraOffsetX) * seed.zebraWarpFreqX,
@@ -325,11 +332,20 @@ function drawZebra(ctx, width, height, pal, seed, deviceScale = 1) {
         const rawBrightness = clamp01(0.1 + bandPos * 0.14 + seed.zebraBrightnessShift);
         const brightness = clamp01(inv ? 1 - rawBrightness : rawBrightness);
         const v = Math.round(brightness * 255);
-        ctx.fillStyle = `rgba(${v},${v},${v},${seed.zebraAlpha.toFixed(2)})`;
-        ctx.fillRect(px, py, step, step);
+        const i = (sy * w + sx) * 4;
+        data[i] = v;
+        data[i + 1] = v;
+        data[i + 2] = v;
+        data[i + 3] = alpha;
       }
     }
   }
+
+  octx.putImageData(img, 0, 0);
+  ctx.save();
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.drawImage(offscreen, 0, 0);
+  ctx.restore();
 }
 
 export function drawBanner(
