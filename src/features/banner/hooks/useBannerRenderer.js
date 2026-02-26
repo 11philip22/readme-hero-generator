@@ -49,8 +49,10 @@ export function useBannerRenderer({
 
   const download = useCallback(() => {
     if (!canvasRef.current) return;
+    const normalizedName = (name ?? "").trim().toLowerCase().replace(/\s+/g, "-");
+    const filenameBase = normalizedName || "banner";
     const a = document.createElement("a");
-    a.download = `${name || "banner"}.png`;
+    a.download = `${filenameBase}-hero-banner.png`;
     a.href = canvasRef.current.toDataURL("image/png");
     a.click();
   }, [canvasRef, name]);
