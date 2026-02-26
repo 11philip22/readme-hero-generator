@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
 import { drawBanner } from "../canvas/drawBanner";
-import { loadFonts } from "../utils/fonts";
 
 export function useBannerRenderer({
   canvasRef,
@@ -19,7 +18,8 @@ export function useBannerRenderer({
 
   useEffect(() => {
     let active = true;
-    loadFonts().then(() => {
+    const ready = document?.fonts?.ready ?? Promise.resolve();
+    ready.then(() => {
       if (active) setFontReady(true);
     });
     return () => {

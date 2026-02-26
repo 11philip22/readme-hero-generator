@@ -30,7 +30,7 @@ export default function BannerHeader({ ui, fontReady, isDark, secondaryTextColor
           letterSpacing: "0.1em",
         }}
       >
-        {fontReady ? "FONT READY · 1400×280 · @2x" : "LOADING FONT…"}
+        {fontReady ? "1400×280 · @2x" : "LOADING FONT…"}
       </span>
       <button
         onClick={onToggleColorMode}
