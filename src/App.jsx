@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 
 const ACCENTS = [
   { name: "ORANGE", color: "#f97316" },
@@ -37,6 +37,41 @@ const PALETTE = {
     PATTERN_INV: true,    // true = dark dots on light bg
   },
 };
+
+function createPatternSeed() {
+  return {
+    topoOffsetX: Math.random() * 1800,
+    topoOffsetY: Math.random() * 1800,
+    topoScaleX: 0.018 + Math.random() * 0.012,
+    topoScaleY: 0.030 + Math.random() * 0.015,
+    topoBandwidth: 0.018 + Math.random() * 0.012,
+    topoDotScale: 0.82 + Math.random() * 0.55,
+    voidOffsetA: Math.random() * 1800,
+    voidOffsetB: Math.random() * 1800,
+    voidOffsetC: Math.random() * 1800,
+    voidOffsetD: Math.random() * 1800,
+    voidWarpPrimaryX: 68 + Math.random() * 40,
+    voidWarpSecondaryX: 24 + Math.random() * 26,
+    voidWarpPrimaryY: 70 + Math.random() * 42,
+    voidWarpSecondaryY: 24 + Math.random() * 26,
+    voidLevels: 14 + Math.floor(Math.random() * 6),
+    voidLevelSpread: 1.3 + Math.random() * 0.45,
+    voidLineBoost: 0.88 + Math.random() * 0.32,
+    zebraOffsetX: Math.random() * 1500,
+    zebraOffsetY: Math.random() * 1500,
+    zebraStripeCount: 8.8 + Math.random() * 3.6,
+    zebraWarpFreqX: 0.005 + Math.random() * 0.006,
+    zebraWarpFreqY: 0.018 + Math.random() * 0.013,
+    zebraWarpAmp: 1.0 + Math.random() * 1.0,
+    zebraThreshold: 0.42 + Math.random() * 0.16,
+    zebraAlpha: 0.72 + Math.random() * 0.16,
+    zebraBrightnessShift: -0.02 + Math.random() * 0.05,
+  };
+}
+
+function clamp01(v) {
+  return Math.min(1, Math.max(0, v));
+}
 
 async function loadFonts() {
   const faces = [
@@ -147,14 +182,15 @@ function drawScan(ctx, width, height, pal) {
   }
 }
 
-function drawTopoWave(ctx, width, height, pal) {
+function drawTopoWave(ctx, width, height, pal, seed) {
   const stepX = 5, stepY = 5, levels = 14;
-  const scaleX = 0.022, scaleY = 0.038;
+  const scaleX = seed.topoScaleX;
+  const scaleY = seed.topoScaleY;
   const inv = pal.PATTERN_INV;
 
   for (let px = 0; px < width; px += stepX) {
     for (let py = 0; py < height; py += stepY) {
-      const val = noise(px * scaleX, py * scaleY);
+      const val = noise((px + seed.topoOffsetX) * scaleX, (py + seed.topoOffsetY) * scaleY);
       const n = (val + 1) / 2;
       const levelStep = 1.0 / levels;
       let minDist = Infinity;
@@ -162,7 +198,7 @@ function drawTopoWave(ctx, width, height, pal) {
         const d = Math.abs(n - i * levelStep);
         if (d < minDist) minDist = d;
       }
-      const bandwidth = 0.022;
+      const bandwidth = seed.topoBandwidth;
       if (minDist < bandwidth) {
         const proximity = 1 - (minDist / bandwidth);
         const levelNorm = Math.round(n / levelStep) / levels;
@@ -171,7 +207,7 @@ function drawTopoWave(ctx, width, height, pal) {
         const alpha = (0.25 + proximity * 0.55) * (0.4 + levelNorm * 0.6);
         const v = Math.round(brightness * 255);
         ctx.fillStyle = `rgba(${v},${v},${v},${alpha.toFixed(2)})`;
-        const dotR = 0.8 + proximity * 0.7 + levelNorm * 0.4;
+        const dotR = (0.75 + proximity * 0.78 + levelNorm * 0.35) * seed.topoDotScale;
         ctx.beginPath();
         ctx.arc(px, py, dotR, 0, Math.PI * 2);
         ctx.fill();
@@ -180,13 +216,13 @@ function drawTopoWave(ctx, width, height, pal) {
   }
 }
 
-function sampleVoidField(x, y, width, height) {
+function sampleVoidField(x, y, seed) {
   const warpX =
-    noise(x * 0.006 + 4.1, y * 0.006 - 1.9) * 88 +
-    noise(x * 0.014 - 3.2, y * 0.010 + 2.7) * 36;
+    noise((x + seed.voidOffsetA) * 0.006 + 4.1, (y - seed.voidOffsetB) * 0.006 - 1.9) * seed.voidWarpPrimaryX +
+    noise((x - seed.voidOffsetC) * 0.014 - 3.2, (y + seed.voidOffsetD) * 0.010 + 2.7) * seed.voidWarpSecondaryX;
   const warpY =
-    noise(x * 0.006 - 2.6, y * 0.006 + 3.4) * 92 +
-    noise(x * 0.012 + 1.8, y * 0.012 - 4.3) * 34;
+    noise((x - seed.voidOffsetD) * 0.006 - 2.6, (y + seed.voidOffsetA) * 0.006 + 3.4) * seed.voidWarpPrimaryY +
+    noise((x + seed.voidOffsetB) * 0.012 + 1.8, (y - seed.voidOffsetC) * 0.012 - 4.3) * seed.voidWarpSecondaryY;
   const wx = x + warpX;
   const wy = y + warpY;
 
@@ -223,7 +259,7 @@ function edgePoint(x, y, step, edge, v00, v10, v11, v01, level) {
   return [x, y + step * t];
 }
 
-function drawVoid(ctx, width, height, pal) {
+function drawVoid(ctx, width, height, pal, seed) {
   const inv = pal.PATTERN_INV;
   const step = 5;
   const cols = Math.ceil(width / step);
@@ -232,7 +268,7 @@ function drawVoid(ctx, width, height, pal) {
 
   for (let gy = 0; gy <= rows; gy++) {
     for (let gx = 0; gx <= cols; gx++) {
-      field[gy][gx] = sampleVoidField(gx * step, gy * step, width, height);
+      field[gy][gx] = sampleVoidField(gx * step, gy * step, seed);
     }
   }
 
@@ -253,9 +289,9 @@ function drawVoid(ctx, width, height, pal) {
     14: [[0, 3]],
   };
 
-  const levels = 17;
-  const minLevel = -1.55;
-  const maxLevel = 1.55;
+  const levels = seed.voidLevels;
+  const minLevel = -seed.voidLevelSpread;
+  const maxLevel = seed.voidLevelSpread;
   for (let i = 0; i < levels; i++) {
     const t = i / Math.max(1, levels - 1);
     const level = minLevel + (maxLevel - minLevel) * t;
@@ -265,7 +301,7 @@ function drawVoid(ctx, width, height, pal) {
     const alpha = 0.22 + (1 - Math.abs(t - 0.5) * 1.65) * 0.36;
 
     ctx.strokeStyle = `rgba(${v},${v},${v},${Math.max(0.08, alpha).toFixed(2)})`;
-    ctx.lineWidth = 0.9 + (1 - Math.abs(t - 0.5) * 1.4) * 0.8;
+    ctx.lineWidth = (0.9 + (1 - Math.abs(t - 0.5) * 1.4) * 0.8) * seed.voidLineBoost;
     ctx.beginPath();
 
     for (let gy = 0; gy < rows; gy++) {
@@ -297,8 +333,8 @@ function drawVoid(ctx, width, height, pal) {
   }
 }
 
-function drawZebra(ctx, width, height, pal, deviceScale = 1) {
-  const stripeWidth = width / 10;
+function drawZebra(ctx, width, height, pal, seed, deviceScale = 1) {
+  const stripeWidth = width / seed.zebraStripeCount;
   const inv = pal.PATTERN_INV;
   const sampleScale = Math.max(1, Math.round(deviceScale));
   const step = 1 / sampleScale;
@@ -309,22 +345,25 @@ function drawZebra(ctx, width, height, pal, deviceScale = 1) {
     const px = sx * step;
     for (let sy = 0; sy < syMax; sy++) {
       const py = sy * step;
-      const warp = noise(py * 0.025, px * 0.008) * stripeWidth * 1.4;
+      const warp = noise(
+        (py + seed.zebraOffsetY) * seed.zebraWarpFreqY,
+        (px + seed.zebraOffsetX) * seed.zebraWarpFreqX,
+      ) * stripeWidth * seed.zebraWarpAmp;
       const warpedX = px + warp;
       const bandPos = ((warpedX / stripeWidth) % 1.0 + 1.0) % 1.0;
-      const isLight = bandPos < 0.5;
+      const isLight = bandPos < seed.zebraThreshold;
       if (isLight) {
-        const rawBrightness = 0.10 + bandPos * 0.14;
-        const brightness = inv ? (1 - rawBrightness) : rawBrightness;
+        const rawBrightness = clamp01(0.10 + bandPos * 0.14 + seed.zebraBrightnessShift);
+        const brightness = clamp01(inv ? (1 - rawBrightness) : rawBrightness);
         const v = Math.round(brightness * 255);
-        ctx.fillStyle = `rgba(${v},${v},${v},0.85)`;
+        ctx.fillStyle = `rgba(${v},${v},${v},${seed.zebraAlpha.toFixed(2)})`;
         ctx.fillRect(px, py, step, step);
       }
     }
   }
 }
 
-function drawBanner(canvas, { name, subtitle, description, tags, accent, bgStyle, colorMode, width, height }) {
+function drawBanner(canvas, { name, subtitle, description, tags, accent, bgStyle, colorMode, patternSeed, width, height }) {
   const ctx = canvas.getContext("2d");
   const dpr = 2;
   canvas.width = width * dpr;
@@ -345,9 +384,9 @@ function drawBanner(canvas, { name, subtitle, description, tags, accent, bgStyle
   if (bgStyle === "DOTS")       drawDotGrid(ctx, width, height, pal);
   else if (bgStyle === "GRID")  drawSquareGrid(ctx, width, height, pal);
   else if (bgStyle === "SCAN")  drawScan(ctx, width, height, pal);
-  else if (bgStyle === "WAVE")  drawTopoWave(ctx, width, height, pal);
-  else if (bgStyle === "VOID")  drawVoid(ctx, width, height, pal);
-  else if (bgStyle === "ZEBRA") drawZebra(ctx, width, height, pal, dpr);
+  else if (bgStyle === "WAVE")  drawTopoWave(ctx, width, height, pal, patternSeed);
+  else if (bgStyle === "VOID")  drawVoid(ctx, width, height, pal, patternSeed);
+  else if (bgStyle === "ZEBRA") drawZebra(ctx, width, height, pal, patternSeed, dpr);
   // NONE — just the solid background color, no pattern
 
   const pad = 20;
@@ -447,16 +486,18 @@ export default function BannerGenerator() {
   const [accentColor, setAccentColor] = useState(ACCENTS[0].color);
   const [bgStyle, setBgStyle]         = useState("WAVE");
   const [colorMode, setColorMode]     = useState("dark");
+  const [patternSeed, setPatternSeed] = useState(() => createPatternSeed());
   const [fontReady, setFontReady]     = useState(false);
   const canvasRef = useRef(null);
   const customColorInputRef = useRef(null);
   const W = 1400, H = 280;
-  const tags   = tagsInput.split(",").map(t => t.trim()).filter(Boolean);
-  const accent = {
+  const tags = useMemo(() => tagsInput.split(",").map(t => t.trim()).filter(Boolean), [tagsInput]);
+  const accent = useMemo(() => ({
     name: accentIdx >= 0 ? ACCENTS[accentIdx].name : "CUSTOM",
     color: accentColor,
-  };
+  }), [accentIdx, accentColor]);
   const isDark = colorMode === "dark";
+  const canRerollPattern = bgStyle === "WAVE" || bgStyle === "VOID" || bgStyle === "ZEBRA";
 
   // UI palette mirrors the banner mode
   const ui = {
@@ -476,10 +517,17 @@ export default function BannerGenerator() {
     loadFonts().then(() => setFontReady(true));
   }, []);
 
+  const handleBackgroundChange = (nextBg) => {
+    setBgStyle(nextBg);
+    if (nextBg === "WAVE" || nextBg === "VOID" || nextBg === "ZEBRA") {
+      setPatternSeed(createPatternSeed());
+    }
+  };
+
   const render = useCallback(() => {
     if (!canvasRef.current || !fontReady) return;
-    drawBanner(canvasRef.current, { name, subtitle, description, tags, accent, bgStyle, colorMode, width: W, height: H });
-  }, [name, subtitle, description, tags, accent, bgStyle, colorMode, fontReady]);
+    drawBanner(canvasRef.current, { name, subtitle, description, tags, accent, bgStyle, colorMode, patternSeed, width: W, height: H });
+  }, [name, subtitle, description, tags, accent, bgStyle, colorMode, patternSeed, fontReady]);
 
   useEffect(() => { render(); }, [render]);
 
@@ -565,11 +613,29 @@ export default function BannerGenerator() {
             <div style={{ ...lbl, marginBottom: 8 }}>Background</div>
             <div style={{ display: "flex", gap: 5 }}>
               {BACKGROUNDS.map(bg => (
-                <button key={bg} onClick={() => setBgStyle(bg)} style={toggleBtn(bgStyle === bg)}>
+                <button key={bg} onClick={() => handleBackgroundChange(bg)} style={toggleBtn(bgStyle === bg)}>
                   {bg === "NONE" ? "✕ NONE" : bg === "DOTS" ? "⬝ DOTS" : bg === "GRID" ? "▦ GRID" : bg === "SCAN" ? "≣ SCAN" : bg === "WAVE" ? "≋ TOPO" : bg === "VOID" ? "▓ VOID" : "▐ ZEBRA"}
                 </button>
               ))}
             </div>
+            <button
+              onClick={() => setPatternSeed(createPatternSeed())}
+              disabled={!canRerollPattern}
+              style={{
+                marginTop: 8,
+                padding: "5px 12px",
+                border: `1px solid ${canRerollPattern ? accent.color : ui.inputBorder}`,
+                background: canRerollPattern ? accent.color + "14" : "transparent",
+                color: canRerollPattern ? accent.color : ui.label,
+                cursor: canRerollPattern ? "pointer" : "default",
+                fontSize: 10,
+                fontFamily: "'JetBrains Mono', monospace",
+                letterSpacing: "0.1em",
+                borderRadius: 0,
+              }}
+            >
+              ↻ VARIANT
+            </button>
           </div>
 
           <div>

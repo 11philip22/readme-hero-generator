@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="assets/readme-hero-generator-hero-banner.png" alt="readme-hero-generator hero pane" width="980">
+  <img src="assets/hero-banner.png" alt="hero pane" width="980">
 </p>
 
 <p align="center">
@@ -56,4 +56,4 @@ If this project saves you time or helps your work, support is appreciated:
 
 ## License
 
-This project is licensed under the MIT License; see [license](LICENSE) for details.
+This project is licensed under the MIT License; see [LICENSE](https://opensource.org/license/MIT) for details.
