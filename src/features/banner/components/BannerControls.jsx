@@ -1,8 +1,8 @@
-function labelStyle(ui) {
+function labelStyle(ui, secondaryTextColor) {
   return {
     display: "block",
     fontSize: 10,
-    color: ui.label,
+    color: secondaryTextColor,
     marginBottom: 5,
     letterSpacing: "0.15em",
     fontFamily: "'JetBrains Mono', monospace",
@@ -30,6 +30,7 @@ export default function BannerControls({
   accents,
   accent,
   accentIdx,
+  secondaryTextColor,
   onSelectAccent,
   customColorInputRef,
   accentColor,
@@ -37,7 +38,7 @@ export default function BannerControls({
   onDownload,
   isDark,
 }) {
-  const lbl = labelStyle(ui);
+  const lbl = labelStyle(ui, secondaryTextColor);
   const toggleBtn = (active) => ({
     padding: "5px 16px",
     border: active ? `1px solid ${accent.color}` : `1px solid ${ui.inputBorder}`,

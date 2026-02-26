@@ -1,6 +1,7 @@
 export default function BannerFields({
   ui,
   accentColor,
+  secondaryTextColor,
   name,
   subtitle,
   description,
@@ -13,7 +14,7 @@ export default function BannerFields({
   const lbl = {
     display: "block",
     fontSize: 10,
-    color: ui.label,
+    color: secondaryTextColor,
     marginBottom: 5,
     letterSpacing: "0.15em",
     fontFamily: "'JetBrains Mono', monospace",

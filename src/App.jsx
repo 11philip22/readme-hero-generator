@@ -54,6 +54,7 @@ export default function BannerGenerator() {
   });
 
   const customColorInputRef = useRef(null);
+  const secondaryTextColor = isDark ? "#8f8d83" : "#6f6c62";
 
   return (
     <div
@@ -72,6 +73,7 @@ export default function BannerGenerator() {
           ui={ui}
           fontReady={fontReady}
           isDark={isDark}
+          secondaryTextColor={secondaryTextColor}
           onToggleColorMode={() => setColorMode(isDark ? "light" : "dark")}
         />
         <BannerPreview ui={ui} accentColor={accent.color} canvasRef={canvasRef} />
@@ -82,6 +84,7 @@ export default function BannerGenerator() {
           subtitle={subtitle}
           description={description}
           tagsInput={tagsInput}
+          secondaryTextColor={secondaryTextColor}
           onNameChange={setName}
           onSubtitleChange={setSubtitle}
           onDescriptionChange={setDescription}
@@ -97,6 +100,7 @@ export default function BannerGenerator() {
           accents={ACCENTS}
           accent={accent}
           accentIdx={accentIdx}
+          secondaryTextColor={secondaryTextColor}
           onSelectAccent={selectAccent}
           customColorInputRef={customColorInputRef}
           accentColor={accentColor}

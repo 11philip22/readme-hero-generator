@@ -1,4 +1,4 @@
-export default function BannerHeader({ ui, fontReady, isDark, onToggleColorMode }) {
+export default function BannerHeader({ ui, fontReady, isDark, secondaryTextColor, onToggleColorMode }) {
   return (
     <div
       style={{
@@ -22,7 +22,14 @@ export default function BannerHeader({ ui, fontReady, isDark, onToggleColorMode 
       >
         README Hero Generator
       </h1>
-      <span style={{ marginLeft: "auto", fontSize: 10, color: ui.meta, letterSpacing: "0.1em" }}>
+      <span
+        style={{
+          marginLeft: "auto",
+          fontSize: 10,
+          color: secondaryTextColor,
+          letterSpacing: "0.1em",
+        }}
+      >
         {fontReady ? "FONT READY · 1400×280 · @2x" : "LOADING FONT…"}
       </span>
       <button
