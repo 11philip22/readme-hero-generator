@@ -10,7 +10,7 @@
 </p>
 
 <p align="center">
-  <a href="#live-demo">Live Demo</a> · <a href="#what-it-does">What It Does</a> · <a href="#run-locally">Run Locally</a> · <a href="#build">Build</a> · <a href="#support">Support</a> · <a href="#license">License</a>
+  <a href="#live-demo">Live Demo</a> · <a href="#what-it-does">What It Does</a> · <a href="#examples">Examples</a> · <a href="#run-locally">Run Locally</a> · <a href="#build">Build</a> · <a href="#support">Support</a> · <a href="#license">License</a>
 </p>
 
 ---
@@ -31,6 +31,38 @@ https://readme-hero-generator.vercel.app/
   - background style (`NONE`, `DOTS`, `GRID`, `SCAN`, `WAVE`, `VOID`, `ZEBRA`)
   - light/dark mode
 - Exports a PNG with a 1400x280 design size (`@2x` render for sharper output).
+
+## Examples
+
+### Example 1
+
+<p align="center">
+  <img src="assets/hero-banner-01.png" alt="Hero banner example 1" width="980">
+</p>
+
+### Example 2
+
+<p align="center">
+  <img src="assets/hero-banner-02.png" alt="Hero banner example 2" width="980">
+</p>
+
+### Example 3
+
+<p align="center">
+  <img src="assets/hero-banner-03.png" alt="Hero banner example 3" width="980">
+</p>
+
+### Example 4
+
+<p align="center">
+  <img src="assets/hero-banner-04.png" alt="Hero banner example 4" width="980">
+</p>
+
+### Example 5
+
+<p align="center">
+  <img src="assets/hero-banner-05.png" alt="Hero banner example 5" width="980">
+</p>
 
 ## Run Locally
 
