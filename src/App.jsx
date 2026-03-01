@@ -74,7 +74,7 @@ export default function BannerGenerator() {
           secondaryTextColor={secondaryTextColor}
           onToggleColorMode={() => setColorMode(isDark ? "light" : "dark")}
         />
-        <BannerPreview ui={ui} accentColor={accent.color} canvasRef={canvasRef} />
+        <BannerPreview ui={ui} canvasRef={canvasRef} />
         <BannerFields
           ui={ui}
           accentColor={accent.color}
